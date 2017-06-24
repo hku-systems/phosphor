@@ -401,6 +401,8 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 
 			mv = new NativeNullMV(mv);
 
+			mv = new StreamObjectMV(mv, className, name);
+
 			mv = new TaintTagFieldCastMV(mv);
 
 			MethodVisitor rootmV = mv;
@@ -590,6 +592,10 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 		{
 			super.visitField(Opcodes.ACC_PUBLIC, TaintUtils.TAINT_FIELD+"marked", "Z", null, 0);
 			super.visitField(Opcodes.ACC_PUBLIC, TaintUtils.TAINT_FIELD+"class", "Ljava/lang/Class;", null, 0);
+		}
+		if (className.equals("java/io/ObjectStreamClass$FieldReflector")) {
+			System.out.println("extra for reflector");
+			super.visitField(Opcodes.ACC_PUBLIC, "tmp_class$$PHOSPHOR", "Ljava/lang/Class;", null, null);
 		}
 		for (FieldNode fn : extraFieldsToVisit) {
 			if (className.equals("java/lang/Byte") && !fn.name.startsWith("value"))

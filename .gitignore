@@ -3,6 +3,8 @@ Trishul
 artifact
 exp2
 experiments
+.idea/*
+Phosphor/lastClass.txt
 
 # Package Files #
 *.jar

@@ -18,7 +18,7 @@ else
 	fi
 	if [ ! -d "target/jre-inst-obj" ]; then
 			echo "Creating obj tag instrumented JRE\n";
-		java -Xmx6g -jar target/Phosphor-0.0.3-SNAPSHOT.jar -serialization -multiTaint -forceUnboxAcmpEq -withEnumsByValue $INST_HOME target/jre-inst-obj;
+		java -Xmx6g -jar target/Phosphor-0.0.3-SNAPSHOT.jar -multiTaint -forceUnboxAcmpEq -withEnumsByValue $INST_HOME target/jre-inst-obj;
 		chmod +x target/jre-inst-obj/bin/*;
 		chmod +x target/jre-inst-obj/lib/*;
 		chmod +x target/jre-inst-obj/jre/bin/*;

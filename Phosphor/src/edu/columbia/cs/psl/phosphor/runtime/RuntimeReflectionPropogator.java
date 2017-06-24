@@ -69,8 +69,8 @@ public class RuntimeReflectionPropogator {
 	public static Class<?> getType(Field f)
 	{
 		String name = f.getName();
-		if(f.getName().endsWith("PHOSPHOR_TAG"))
-			return f.getType();
+//		if(f.getName().endsWith("PHOSPHOR_TAG"))
+//			return f.getType();
 		Class<?> ret = f.getType();
 		Class<?> component = ret;
 		while(component.isArray())
