@@ -537,7 +537,23 @@ public class TaintUtils {
 	}
 	
 	public static void arraycopy(Object srcTaint, Object src, int srcPosTaint, int srcPos, Object dest, int destPosTaint, int destPos, int lengthTaint, int length) {
-		throw new ArrayStoreException("Can't copy from src with taint to dest w/o taint!");
+		//A pretty tricky modification >_< , do not grantee correctness
+		if(!src.getClass().isArray() && !dest.getClass().isArray())
+		{
+			System.arraycopy(((LazyArrayIntTags)src).getVal(), srcPos, ((LazyArrayIntTags)dest).getVal(), destPos, length);
+		}
+		else if(!dest.getClass().isArray())
+		{
+			System.arraycopy(src, srcPos, ((LazyArrayIntTags)dest).getVal(), destPos, length);
+			if (((LazyArrayIntTags)dest).taints == null)
+				((LazyArrayIntTags)dest).taints = new int[((LazyArrayIntTags)dest).getLength()];
+			System.out.println("tag 2 " + ((LazyArrayIntTags)dest).getLength());
+		}
+		else {
+			System.arraycopy(src, srcPos, dest, destPos, length);
+		}
+		System.out.println("finish");
+//		throw new ArrayStoreException("Can't copy from src with taint to dest w/o taint!");
 	}
 
 	public static void arraycopy(Object src, int srcPosTaint, int srcPos, Object destTaint, Object dest, int destPosTaint, int destPos, int lengthTaint, int length) {

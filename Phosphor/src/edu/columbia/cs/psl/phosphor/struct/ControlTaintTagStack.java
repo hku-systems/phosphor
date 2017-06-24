@@ -37,7 +37,8 @@ public final class ControlTaintTagStack {
 					if (t.lbl != null)
 						taint.addDependency(t);
 					else if (!(t.hasNoDependencies())) {
-						taint.dependencies.addAll(t.dependencies);
+						//TODO remove
+//						taint.dependencies.addAll(t.dependencies);
 					}
 				}
 				n = n.next;

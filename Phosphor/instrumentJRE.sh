@@ -8,7 +8,7 @@ else
 	echo "Ensuring instrumented JREs exist for tests... to refresh, do mvn clean\n";
 	if [ ! -d "target/jre-inst-int" ]; then
 		echo "Creating int tag instrumented JRE\n";
-		java -Xmx6g -jar target/Phosphor-0.0.3-SNAPSHOT.jar -serialization -forceUnboxAcmpEq -withEnumsByValue $INST_HOME target/jre-inst-int;
+		java -Xmx6g -jar target/Phosphor-0.0.3-SNAPSHOT.jar -forceUnboxAcmpEq -withEnumsByValue $INST_HOME target/jre-inst-int;
 		chmod +x target/jre-inst-int/bin/*;
 		chmod +x target/jre-inst-int/lib/*;
 		chmod +x target/jre-inst-int/jre/bin/*;
