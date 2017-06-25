@@ -774,14 +774,18 @@ public class Instrumenter {
 		return false;
 	}
 
-	public static boolean isIgnoredMethodFromOurAnalysis(String owner, String name, String desc) {
+	// call to these function will generate a instrumented call
+	public static boolean instrumentedMethodFromOurAnalysis(String owner, String name, String desc) {
 		if (!owner.startsWith("edu/columbia/cs/psl/phosphor") &&!owner.startsWith("[")
-			&& !owner.startsWith("java")
 				&& !SelectiveInstrumentationManager.methodsToInstrument.contains(new MethodDescriptor(name, owner, desc))) {
 			if (TaintUtils.DEBUG_CALLS)
 				System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
-			return true;
+			return false;
 		}
+		return true;
+	}
+
+	public static boolean isIgnoredMethodFromOurAnalysis(String owner, String name, String desc) {
 		return false;
 	}
 	

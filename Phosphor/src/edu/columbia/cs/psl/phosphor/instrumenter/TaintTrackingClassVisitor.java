@@ -1257,7 +1257,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 						@Override
 						public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 							//determine if this is going to be uninst, and then if we need to pre-alloc for its return :/
-							if(Configuration.WITH_SELECTIVE_INST && Instrumenter.isIgnoredMethodFromOurAnalysis(owner, name, desc)){
+							if(Configuration.WITH_SELECTIVE_INST && !Instrumenter.instrumentedMethodFromOurAnalysis(owner, name, desc)){
 								//uninst
 							}
 							else

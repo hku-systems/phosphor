@@ -318,7 +318,7 @@ public class UninstrumentedCompatMV extends TaintAdapter {
 			}
 		}
 
-		if (!isCalledOnArrayType && Configuration.WITH_SELECTIVE_INST && !owner.startsWith("[") && Instrumenter.isIgnoredMethodFromOurAnalysis(owner, name, desc)) {
+		if (!isCalledOnArrayType && Configuration.WITH_SELECTIVE_INST && !owner.startsWith("[") && !Instrumenter.instrumentedMethodFromOurAnalysis(owner, name, desc)) {
 			if (name.equals("<init>")) {
 				super.visitInsn(Opcodes.ACONST_NULL);
 				desc = desc.substring(0, desc.indexOf(')')) + Type.getDescriptor(UninstrumentedTaintSentinel.class) + ")" + desc.substring(desc.indexOf(')') + 1);
