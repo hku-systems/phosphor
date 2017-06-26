@@ -786,6 +786,9 @@ public class Instrumenter {
 	}
 
 	public static boolean isIgnoredMethodFromOurAnalysis(String owner, String name, String desc) {
+		if (name.equals("main") && desc.equals("([Ljava/lang/String;)V")) {
+			return true;
+		}
 		return false;
 	}
 	
