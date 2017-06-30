@@ -316,6 +316,7 @@ public class UninstrumentedCompatMV extends TaintAdapter {
 			owner = MultiDTaintedArray.getTypeForType(ownerType).getInternalName();
 		}
 		Type origReturnType = Type.getReturnType(desc);
+		boolean isPreAllocedReturnType = TaintUtils.isPreAllocReturnType(desc);
 		boolean isCalledOnArrayType = false;
 		if ((owner.equals("java/lang/System") || owner.equals("java/lang/VMSystem") || owner.equals("java/lang/VMMemoryManager"))&& name.equals("arraycopy")
 				&&! desc.equals("(Ljava/lang/Object;ILjava/lang/Object;IILjava/lang/DCompMarker;)V")) {
@@ -442,8 +443,11 @@ public class UninstrumentedCompatMV extends TaintAdapter {
 				if((origReturnType.getSort() == Type.ARRAY && origReturnType.getDimensions() == 1 && origReturnType.getElementType().getSort() != Type.OBJECT)
 						|| (origReturnType.getSort() != Type.ARRAY && origReturnType.getSort() != Type.OBJECT && origReturnType.getSort() != Type.VOID))
 				{
-					desc = desc.substring(0, desc.indexOf(')')) + newReturnType.getDescriptor() + ")" + desc.substring(desc.indexOf(')') + 1);
-					super.visitVarInsn(ALOAD, lvs.getPreAllocedReturnTypeVar(newReturnType));
+					if (isPreAllocedReturnType) {
+						// preload case
+						desc = desc.substring(0, desc.indexOf(')')) + newReturnType.getDescriptor() + ")" + desc.substring(desc.indexOf(')') + 1);
+						super.visitVarInsn(ALOAD, lvs.getPreAllocedReturnTypeVar(newReturnType));
+					}
 					name += TaintUtils.METHOD_SUFFIX;
 				}
 				else if(hasChangedDesc)
