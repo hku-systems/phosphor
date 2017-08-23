@@ -782,7 +782,7 @@ public class Instrumenter {
 				System.out.println("Using uninstrument method call for class: " + owner + " method: " + name + " desc: " + desc);
 			return false;
 		}
-		System.out.println("Using instrument method call for class: " + owner + " method: " + name + " desc: " + desc);
+//		System.out.println("Using instrument method call for class: " + owner + " method: " + name + " desc: " + desc);
 		return true;
 	}
 

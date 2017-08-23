@@ -2,6 +2,7 @@ package edu.columbia.cs.psl.phosphor.runtime;
 
 import java.lang.reflect.Array;
 
+import edu.columbia.cs.psl.phosphor.Configuration;
 import org.objectweb.asm.Type;
 
 import edu.columbia.cs.psl.phosphor.struct.ControlTaintTagStack;
@@ -104,6 +105,13 @@ public class ArrayReflectionMasker {
 
 	public static Object newInstance$$PHOSPHORTAGGED(Class clazz, int lenTaint, int len, ControlTaintTagStack zz) {
 		return newInstance$$PHOSPHORTAGGED(clazz, lenTaint, len);
+	}
+
+	public static Object newInstance$$PHOSPHORUNTAGGED(Class clazz, int len) {
+		if (!Configuration.MULTI_TAINTING)
+			return newInstance$$PHOSPHORTAGGED(clazz, 0, len);
+		else
+			return newInstance$$PHOSPHORTAGGED(clazz, null, len);
 	}
 
 	public static Object newInstance$$PHOSPHORTAGGED(Class clazz, int lenTaint, int len) {
