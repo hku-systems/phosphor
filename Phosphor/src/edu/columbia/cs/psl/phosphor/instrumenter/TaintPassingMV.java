@@ -52,6 +52,11 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 	public void visitCode() {
 //		System.out.println("TPMVStart" + name);
 		super.visitCode();
+		if (className.equals("java/lang/Thread") && name.equals("start") && desc.equals("()V")) {
+			super.visitVarInsn(Opcodes.ALOAD, 0);
+			super.visitInsn(Opcodes.ICONST_1);
+			super.visitFieldInsn(Opcodes.PUTFIELD, className, TaintUtils.THREAD_MARK_FIELD, "I");
+		}
 		firstLabel = new Label();
 		super.visitLabel(firstLabel);
 		if(Configuration.IMPLICIT_TRACKING || Configuration.IMPLICIT_LIGHT_TRACKING)
@@ -1927,6 +1932,13 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 			System.out.println("Remapped call from " + owner + "." + name + desc + " to " + owner + "." + name + newDesc);
 		if (!name.contains("<") && hasNewName)
 			name += TaintUtils.METHOD_SUFFIX;
+
+		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") &&
+				Opcodes.ACC_PUBLIC == Opcodes.ACC_PUBLIC && desc.equals("()V");
+
+		if (localThreadFix)
+			name += TaintUtils.METHOD_SUFFIX;
+
 		if (TaintUtils.DEBUG_CALLS) {
 			System.out.println("Calling w/ stack: " + analyzer.stack);
 		}

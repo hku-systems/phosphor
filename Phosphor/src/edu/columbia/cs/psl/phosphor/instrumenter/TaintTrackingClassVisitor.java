@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -57,7 +58,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 	public static boolean FIELDS_ONLY = false;
 	public static boolean GEN_HAS_TAINTS_METHOD = false;
 	public static final boolean NATIVE_BOX_UNBOX = true;
-	
+
 	static boolean DO_OPT = false;
 	static {
 		if (!DO_OPT && !IS_RUNTIME_INST)
@@ -80,6 +81,11 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 	private LinkedList<MethodNode> methodsToMakeUninstWrappersAround = new LinkedList<MethodNode>();
 
 	private LinkedList<MethodNode> methodsToAddWrappersFor = new LinkedList<MethodNode>();
+
+	private MethodNode threadMethod;
+
+	boolean threadFix = false;
+
 	private String className;
 	private boolean isNormalClass;
 	private boolean isInterface;
@@ -389,12 +395,25 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 		if (!requiresNoChange && !name.equals("<clinit>") && !(name.equals("<init>") && !isRewrittenDesc))
 			methodsToAddWrappersFor.add(wrapper);
 
+		// fix thread call into run
+		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") &&
+				access == Opcodes.ACC_PUBLIC && desc.equals("()V") && exceptions == null;
+		if (localThreadFix)
+			threadFix = true;
+		if (localThreadFix) {
+			threadMethod = new MethodNode(access, name, desc, signature, exceptions);
+		}
+
 		String newDesc = Type.getMethodDescriptor(newReturnType, newArgs);
 		//		System.out.println("olddesc " + desc + " newdesc " + newDesc);
 		if ((access & Opcodes.ACC_NATIVE) == 0 && !methodIsTooBigAlready(name, desc)) {
 			//not a native method
 			if (!name.contains("<") && !requiresNoChange)
 				name = name + TaintUtils.METHOD_SUFFIX;
+
+			if (localThreadFix) {
+				name = name + TaintUtils.METHOD_SUFFIX;
+			}
 //			if(className.equals("sun/misc/URLClassPath$JarLoader"))
 //				System.out.println("\t\t:"+name+newDesc);
 			MethodVisitor mv = super.visitMethod(access, name, newDesc, signature, exceptions);
@@ -614,6 +633,31 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 			} else
 				super.visitField(fn.access, fn.name, fn.desc, fn.signature, null);
 		}
+
+		if (threadFix) {
+			if (className.equals("java/lang/Thread"))
+				super.visitField(Opcodes.ACC_PUBLIC, TaintUtils.THREAD_MARK_FIELD, "I", null, 0);
+			MethodVisitor methodVisitor = super.visitMethod(threadMethod.access, threadMethod.name,
+					threadMethod.desc, threadMethod.signature, new String[threadMethod.exceptions.size()]);
+			GeneratorAdapter generatorAdapter = new GeneratorAdapter(methodVisitor, threadMethod.access, threadMethod.name, threadMethod.desc);
+			Label tag_run = new Label();
+			Label fin = new Label();
+			generatorAdapter.visitCode();
+			generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+			generatorAdapter.visitFieldInsn(Opcodes.GETFIELD, className, "PHOSPHOR_TAG_RUN", "I");
+			generatorAdapter.visitJumpInsn(Opcodes.IFNE, tag_run);
+			generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+			generatorAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "run" + TaintUtils.METHOD_SUFFIX_UNINST, "()V", false);
+			generatorAdapter.visitJumpInsn(Opcodes.GOTO, fin);
+			generatorAdapter.visitLabel(tag_run);
+			generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+			generatorAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "run" + TaintUtils.METHOD_SUFFIX, "()V", false);
+			generatorAdapter.visitLabel(fin);
+			generatorAdapter.visitInsn(Opcodes.RETURN);
+			generatorAdapter.visitMaxs(0, 0);
+			generatorAdapter.visitEnd();
+		}
+
 		if(FIELDS_ONLY)
 			return;
 		if ((isAbstractClass || isInterface) && implementsComparable && !goLightOnGeneratedStuff) {

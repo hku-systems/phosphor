@@ -82,6 +82,8 @@ public class TaintUtils {
 
 
 	public static final String TAINT_FIELD = "PHOSPHOR_TAG";
+
+	public static final String THREAD_MARK_FIELD = "PHOSPHOR_TAG_RUN";
 //	public static final String HAS_TAINT_FIELD = "INVIVO_IS_TAINTED";
 //	public static final String IS_TAINT_SEATCHING_FIELD = "INVIVO_IS_TAINT_SEARCHING";
 
