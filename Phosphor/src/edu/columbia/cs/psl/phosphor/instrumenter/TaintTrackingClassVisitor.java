@@ -84,6 +84,8 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 
 	private MethodNode threadMethod;
 
+	private String[] threadException;
+
 	boolean threadFix = false;
 
 	private String className;
@@ -396,12 +398,12 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 			methodsToAddWrappersFor.add(wrapper);
 
 		// fix thread call into run
-		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") &&
-				((access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC) && desc.equals("()V") && exceptions == null;
+		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") && desc.equals("()V");
 		if (localThreadFix)
 			threadFix = true;
 		if (localThreadFix) {
 			threadMethod = new MethodNode(access, name, desc, signature, exceptions);
+			threadException = exceptions;
 		}
 
 		String newDesc = Type.getMethodDescriptor(newReturnType, newArgs);
@@ -638,7 +640,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 			if (className.equals("java/lang/Thread"))
 				super.visitField(Opcodes.ACC_PUBLIC, TaintUtils.THREAD_MARK_FIELD, "I", null, 0);
 			MethodVisitor methodVisitor = super.visitMethod(threadMethod.access, threadMethod.name,
-					threadMethod.desc, threadMethod.signature, new String[threadMethod.exceptions.size()]);
+					threadMethod.desc, threadMethod.signature, threadException);
 			if ((threadMethod.access & Opcodes.ACC_ABSTRACT) == 0) {
 				GeneratorAdapter generatorAdapter = new GeneratorAdapter(methodVisitor, threadMethod.access, threadMethod.name, threadMethod.desc);
 				Label tag_run = new Label();
