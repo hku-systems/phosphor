@@ -397,7 +397,7 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 
 		// fix thread call into run
 		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") &&
-				access == Opcodes.ACC_PUBLIC && desc.equals("()V") && exceptions == null;
+				((access & Opcodes.ACC_PUBLIC) == Opcodes.ACC_PUBLIC) && desc.equals("()V") && exceptions == null;
 		if (localThreadFix)
 			threadFix = true;
 		if (localThreadFix) {
@@ -639,23 +639,27 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 				super.visitField(Opcodes.ACC_PUBLIC, TaintUtils.THREAD_MARK_FIELD, "I", null, 0);
 			MethodVisitor methodVisitor = super.visitMethod(threadMethod.access, threadMethod.name,
 					threadMethod.desc, threadMethod.signature, new String[threadMethod.exceptions.size()]);
-			GeneratorAdapter generatorAdapter = new GeneratorAdapter(methodVisitor, threadMethod.access, threadMethod.name, threadMethod.desc);
-			Label tag_run = new Label();
-			Label fin = new Label();
-			generatorAdapter.visitCode();
-			generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-			generatorAdapter.visitFieldInsn(Opcodes.GETFIELD, className, "PHOSPHOR_TAG_RUN", "I");
-			generatorAdapter.visitJumpInsn(Opcodes.IFNE, tag_run);
-			generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-			generatorAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "run" + TaintUtils.METHOD_SUFFIX_UNINST, "()V", false);
-			generatorAdapter.visitJumpInsn(Opcodes.GOTO, fin);
-			generatorAdapter.visitLabel(tag_run);
-			generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
-			generatorAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "run" + TaintUtils.METHOD_SUFFIX, "()V", false);
-			generatorAdapter.visitLabel(fin);
-			generatorAdapter.visitInsn(Opcodes.RETURN);
-			generatorAdapter.visitMaxs(0, 0);
-			generatorAdapter.visitEnd();
+			if ((threadMethod.access & Opcodes.ACC_ABSTRACT) == 0) {
+				GeneratorAdapter generatorAdapter = new GeneratorAdapter(methodVisitor, threadMethod.access, threadMethod.name, threadMethod.desc);
+				Label tag_run = new Label();
+				Label fin = new Label();
+				generatorAdapter.visitCode();
+				generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+				generatorAdapter.visitFieldInsn(Opcodes.GETFIELD, className, "PHOSPHOR_TAG_RUN", "I");
+				generatorAdapter.visitJumpInsn(Opcodes.IFNE, tag_run);
+				generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+				generatorAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "run" + TaintUtils.METHOD_SUFFIX_UNINST, "()V", false);
+				generatorAdapter.visitJumpInsn(Opcodes.GOTO, fin);
+				generatorAdapter.visitLabel(tag_run);
+				generatorAdapter.visitVarInsn(Opcodes.ALOAD, 0);
+				generatorAdapter.visitMethodInsn(Opcodes.INVOKEVIRTUAL, className, "run" + TaintUtils.METHOD_SUFFIX, "()V", false);
+				generatorAdapter.visitLabel(fin);
+				generatorAdapter.visitInsn(Opcodes.RETURN);
+				generatorAdapter.visitMaxs(0, 0);
+				generatorAdapter.visitEnd();
+			} else {
+				threadMethod.accept(methodVisitor);
+			}
 		}
 
 		if(FIELDS_ONLY)
