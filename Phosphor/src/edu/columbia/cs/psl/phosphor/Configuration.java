@@ -33,6 +33,7 @@ public class Configuration {
 	
 	public static boolean WITH_TAGS_FOR_JUMPS = false;
 	public static boolean WITH_SELECTIVE_INST = false;
+	public static boolean WITH_THREAD_FIX = false;
 	public static String selective_inst_config;
 	
 	public static boolean WITHOUT_PROPOGATION = false;

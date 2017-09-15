@@ -398,7 +398,8 @@ public class TaintTrackingClassVisitor extends ClassVisitor {
 			methodsToAddWrappersFor.add(wrapper);
 
 		// fix thread call into run
-		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") && desc.equals("()V");
+		boolean localThreadFix = Configuration.WITH_THREAD_FIX &&
+				Configuration.WITH_SELECTIVE_INST && name.equals("run") && desc.equals("()V");
 		if (localThreadFix)
 			threadFix = true;
 		if (localThreadFix) {

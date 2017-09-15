@@ -77,6 +77,8 @@ public abstract class SourceSinkManager {
 					r += t.getDescriptor();
 					isSkipping = !isSkipping;
 				}
+			} else if (t.getInternalName().startsWith("edu/columbia/cs/psl/phosphor/struct/Lazy")) {
+				isSkipping = true;
 			} else if (t.getInternalName().startsWith("edu/columbia/cs/psl/phosphor/struct/multid")) {
 				r += MultiDTaintedArrayWithIntTag.getPrimitiveTypeForWrapper(t.getDescriptor()).getDescriptor();
 			} else if (t.getInternalName().startsWith("edu/columbia/cs/psl/phosphor/struct")) {

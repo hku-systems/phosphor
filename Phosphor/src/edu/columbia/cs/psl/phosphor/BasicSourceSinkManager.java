@@ -75,7 +75,7 @@ public class BasicSourceSinkManager extends SourceSinkManager {
 						String line = s.nextLine();
 						lastLine = line;
 						if (!line.startsWith("#") && !line.isEmpty())
-							sinks.add(line);
+							sinks.add(line.trim());
 					}
 					s.close();
 				}

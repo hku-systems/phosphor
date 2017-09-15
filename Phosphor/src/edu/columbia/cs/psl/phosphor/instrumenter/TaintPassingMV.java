@@ -52,7 +52,7 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 	public void visitCode() {
 //		System.out.println("TPMVStart" + name);
 		super.visitCode();
-		if (className.equals("java/lang/Thread") && name.equals("start") && desc.equals("()V")) {
+		if (Configuration.WITH_THREAD_FIX && Configuration.WITH_SELECTIVE_INST && className.equals("java/lang/Thread") && name.equals("start") && desc.equals("()V")) {
 			super.visitVarInsn(Opcodes.ALOAD, 0);
 			super.visitInsn(Opcodes.ICONST_1);
 			super.visitFieldInsn(Opcodes.PUTFIELD, className, TaintUtils.THREAD_MARK_FIELD, "I");
@@ -1933,7 +1933,8 @@ public class TaintPassingMV extends TaintAdapter implements Opcodes {
 		if (!name.contains("<") && hasNewName)
 			name += TaintUtils.METHOD_SUFFIX;
 
-		boolean localThreadFix = Configuration.WITH_SELECTIVE_INST && name.equals("run") &&
+		boolean localThreadFix = Configuration.WITH_THREAD_FIX &&
+				Configuration.WITH_SELECTIVE_INST && name.equals("run") &&
 				Opcodes.ACC_PUBLIC == Opcodes.ACC_PUBLIC && desc.equals("()V");
 
 		if (localThreadFix)
