@@ -8,35 +8,67 @@ import edu.columbia.cs.psl.phosphor.struct.LazyCharArrayObjTags;
 import edu.columbia.cs.psl.phosphor.struct.TaintedWithIntTag;
 import edu.columbia.cs.psl.phosphor.struct.TaintedWithObjTag;
 
+
+
 public class TaintChecker {
+
+	public interface CheckFuncInt {
+		public void checkTag(int tag);
+	}
+
+	public interface CheckFuncObj {
+		public void checkTag(Object tag);
+	}
+
+	public static void setCheckerFunc(CheckFuncInt checkInt) {
+		checkFuncInt = checkInt;
+	}
+
+	public static void setCheckerFunc(CheckFuncObj checkObj) {
+		checkFuncObj = checkObj;
+	}
+
+	private static CheckFuncInt checkFuncInt = new CheckFuncInt() {
+		@Override
+		public void checkTag(int tag)  {
+			if (tag != 0) {
+				throw new IllegalAccessError("Argument carries taint " + tag);
+			}
+		}
+	};
+
+	private static CheckFuncObj checkFuncObj = new CheckFuncObj() {
+		@Override
+		public void checkTag(Object tag) {
+			if (tag != null) {
+				throw new IllegalAccessError("Argument carries taint " + tag);
+			}
+		}
+	};
+
 	public static void checkTaint(int tag)
 	{
-		if(tag != 0)
-			throw new IllegalAccessError("Argument carries taint " + tag);
+		checkFuncInt.checkTag(tag);
 	}
 	public static void checkTaint(Taint tag)
 	{
-		if(tag != null)
-			throw new IllegalAccessError("Argument carries taint " + tag);
+		checkFuncObj.checkTag(tag);
 	}
 	public static void checkTaint(Object obj) {
 		if(obj == null)
 			return;
 		if (obj instanceof TaintedWithIntTag) {
-			if (((TaintedWithIntTag) obj).getPHOSPHOR_TAG() != 0)
-				throw new IllegalAccessError("Argument carries taint " + ((TaintedWithIntTag) obj).getPHOSPHOR_TAG());
+			checkFuncInt.checkTag(((TaintedWithIntTag) obj).getPHOSPHOR_TAG());
 		}
 		else if (obj instanceof TaintedWithObjTag) {
-			if (((TaintedWithObjTag) obj).getPHOSPHOR_TAG() != null)
-				throw new IllegalAccessError("Argument carries taint " + ((TaintedWithObjTag) obj).getPHOSPHOR_TAG());
+			checkFuncObj.checkTag(((TaintedWithObjTag) obj).getPHOSPHOR_TAG());
 		}
 
 		else if(obj instanceof int[])
 		{
 			for(int i : ((int[])obj))
 			{
-				if(i > 0)
-					throw new IllegalAccessError("Argument carries taints - example: " +i);
+				checkFuncInt.checkTag(i);
 			}
 		}
 		else if(obj instanceof LazyArrayIntTags)
@@ -44,8 +76,7 @@ public class TaintChecker {
 			LazyArrayIntTags tags = ((LazyArrayIntTags) obj);
 			if (tags.taints != null)
 				for (int i : tags.taints) {
-					if (i > 0)
-						throw new IllegalAccessError("Argument carries taints - example: " + i);
+					checkFuncInt.checkTag(i);
 				}
 		}
 		else if(obj instanceof LazyArrayObjTags)
@@ -53,8 +84,7 @@ public class TaintChecker {
 			LazyArrayObjTags tags = ((LazyArrayObjTags) obj);
 			if (tags.taints != null)
 				for (Object i : tags.taints) {
-					if (i != null)
-						throw new IllegalAccessError("Argument carries taints - example: " + i);
+					checkFuncObj.checkTag(i);
 				}
 		}
 		else if(obj instanceof Object[])
